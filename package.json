@@ -1,0 +1,16 @@
+{
+  "name": "web-concurrency-bank",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sam",
+  "license": "ISC",
+  "dependencies": {
+    "async-lock": "^1.4.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2"
+  }
+}
