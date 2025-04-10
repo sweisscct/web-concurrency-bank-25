@@ -41,6 +41,7 @@ async function handleWithdrawal(amount) {
 }
 
 // Deposit route
+// eg http://localhost:3000/deposit?amount=100
 app.get('/deposit', async (req, res) => {
     const amount = parseInt(req.query.amount, 10) || 0;
     // Simulate a race condition by directly modifying the balance without synchronization
@@ -57,7 +58,8 @@ app.get('/withdraw', async (req, res) => {
 });
 
 app.get('/balance', async (req, res) => {
-    res.send(`Current balance: $${accountBalance}`);
+    let account = await Account.findOne({ "_id": 1 });
+    res.send(`Current balance: $${account.balance}`);
 })
 
 // Start the server
