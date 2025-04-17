@@ -25,11 +25,15 @@ Account.findById(1)
 
 // Function to simulate a race condition by directly manipulating account balance without synchronization
 async function handleDeposit(amount) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     console.log(`Depositing $${amount}`);
-    let account = await Account.findOne({ "_id": 1 });
+    let account = await Account.findOne({ "_id": 1 }).session(session);
     account.balance += amount;
     console.log(account.balance);
-    account.save();
+    await account.save({ session });
+    await session.commitTransaction();
+    session.endSession();
 }
 
 async function handleWithdrawal(amount) {
