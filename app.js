@@ -41,11 +41,16 @@ async function handleDeposit(amount) {
 
 async function handleWithdrawal(amount) {
     console.log(`Withdrawing $${amount}`);
-    let account = await Account.findOne({ "_id": 1 });
-    if (account.balance >= amount) account.balance -= amount;
-    else console.log("Sorry, not enoung money :(");
-    console.log(account.balance);
-    account.save();
+    if (!Number(amount)) return;
+    let result = await Account.findOneAndUpdate(
+        { "_id": 1, balance: { $gte: amount } },
+        { $inc: {balance: -amount} },
+        { new: true }
+    );
+    // if (account) account.balance -= amount;
+    if (!result) console.log("Sorry, not enoung money :(");
+    else console.log(result.balance);
+    // account.save();
 }
 
 // Deposit route
