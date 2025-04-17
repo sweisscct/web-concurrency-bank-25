@@ -12,3 +12,6 @@ host.docker.internal specifies that the requests should be made to the machine l
 
 docker run ab "-n", "1000", "-c", "10", "http://host.docker.internal:3000/deposit?amount=1"
 
+Exercise:
+    Create a second account
+    Create a route to allow transfers between accounts
