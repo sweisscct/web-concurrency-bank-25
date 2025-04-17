@@ -26,16 +26,24 @@ Account.findById(1)
 // Function to simulate a race condition by directly manipulating account balance without synchronization
 async function handleDeposit(amount) {
     console.log(`Depositing $${amount}`);
-    let account = await Account.findOne({ "_id": 1 });
-    account.balance += amount;
-    console.log(account.balance);
-    account.save();
+    const result = await Account.findOneAndUpdate(
+        { _id: 1 },
+        { $inc: { balance: amount } },
+        { new: true }
+    )
+    console.log(result.balance);
+
+    // let account = await Account.findOne({ "_id": 1 });
+    // account.balance += amount;
+    // console.log(account.balance);
+    // account.save();
 }
 
 async function handleWithdrawal(amount) {
     console.log(`Withdrawing $${amount}`);
     let account = await Account.findOne({ "_id": 1 });
-    account.balance -= amount;
+    if (account.balance >= amount) account.balance -= amount;
+    else console.log("Sorry, not enoung money :(");
     console.log(account.balance);
     account.save();
 }
