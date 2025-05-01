@@ -1,10 +1,10 @@
 const express = require('express');
 const mongoose = require("mongoose");
-const { Mutex } = require("async-mutex");
+const { Mutex, withTimeout, E_TIMEOUT } = require("async-mutex");
 
 const app = express();
 const PORT = 3000;
-const accountMutex = new Mutex();
+const accountMutex = withTimeout(new Mutex(), 5000);
 
 mongoose.connect('mongodb://127.0.0.1:27017/bank');
 
@@ -45,22 +45,30 @@ async function handleDeposit(amount, accountNum) {
 }
 
 async function handleDeposit2(amount, accountNum) {
-    // console.log(accountMutex.isLocked())
+    console.log(accountMutex.isLocked())
     const release = await accountMutex.acquire();
-    // console.log(accountMutex.isLocked())
-    // release();
-    // console.log(accountMutex.isLocked())
-    // const release2 = await accountMutex.acquire();
+    console.log(accountMutex.isLocked())
+    release();
+    console.log(accountMutex.isLocked())
+    let release2;
+    try {
+        release2 = await accountMutex.acquire();
+    } catch (E_TIMEOUT) {
+        console.log("Took too long to unlock")
+    } finally {
+        release2();
+    }
+    
     try {
         console.log(`Depositing $${amount}`);
         let account = await Account.findOne({ "_id": accountNum });
         account.balance += amount;
         console.log(account.balance);
         account.save();
-        throw Error;
+        // throw Error;
     } catch (error) {
         console.log(error);
-        throw Error;
+        // throw Error;
     } finally {
         release();
         console.log("Finally")
@@ -128,3 +136,17 @@ app.get('/balance', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
+
+/*
+https://www.facebook.com/login.php?
+skip_api_login=1&
+api_key=113289095462482&kid_directed_site=0&
+app_id=113289095462482&
+signed_next=1&
+next=https%3A%2F%2Fwww.facebook.com%2Fv18.0%2Fdialog%2Foauth%3Fresponse_type%3Dcode%26client_id%3D113289095462482%26scope%3Demail%252Cpublic_profile%26redirect_uri%3Dhttps%253A%252F%252Fzoom.us%252Ffacebook%252Foauth%26state%3DVmpGdmNjV1BUWGVIODFMdlJ2UFE3QSxmYWNlYm9va19zaWduaW4%26ret%3Dlogin%26fbapp_pres%3D0%26logger_id%3D86e05f29-ebfd-4ba1-8906-4bd56d3ee87b%26tp%3Dunspecified&
+cancel_url=https%3A%2F%2Fzoom.us%2Ffacebook%2Foauth%3Ferror%3Daccess_denied%26error_code%3D200%26error_description%3DPermissions%2Berror%26error_reason%3Duser_denied%26state%3DVmpGdmNjV1BUWGVIODFMdlJ2UFE3QSxmYWNlYm9va19zaWduaW4%23_%3D_&
+display=page&
+locale=en_US&
+pl_dbl=0
+
+*/
